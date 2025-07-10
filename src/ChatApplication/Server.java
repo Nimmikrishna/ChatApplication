@@ -20,10 +20,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.*; 
-import javafx.application.*;
-import javafx.scene.Scene; 
-import javafx.scene.control.ScrollPane; 
-import javafx.scene.control.TextArea; 
 
 
 

@@ -17,26 +17,26 @@ import java.io.*;
 
 public class MessageHandler implements Serializable {
 	
-	String message = null;
-    boolean disconnect;
+	public String message = null;
+    public boolean disconnect;
 	
-    MessageHandler(String msg)
+    public MessageHandler(String msg)
     {
     	message = msg;
         this.disconnect = false;
 	}
         
-    MessageHandler()
+    public MessageHandler()
     {
         this.disconnect = true;
     }
         
-    boolean diconnectClient()
+    public boolean diconnectClient()
     {
     	return disconnect;
     }
 	
-	String getMessage(){
+	public String getMessage(){
 		return message;
 	}
 

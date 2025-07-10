@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ChatApplication" default="test" basedir=".">
+    
+    <!-- Project properties -->
+    <property name="src.dir" value="."/>
+    <property name="test.dir" value="test"/>
+    <property name="build.dir" value="build"/>
+    <property name="build.classes.dir" value="${build.dir}/classes"/>
+    <property name="build.test.dir" value="${build.dir}/test"/>
+    <property name="lib.dir" value="lib"/>
+    <property name="junit.version" value="4.12"/>
+    <property name="hamcrest.version" value="1.3"/>
+    
+    <!-- Classpath definitions -->
+    <path id="classpath">
+        <pathelement location="${build.classes.dir}"/>
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+    </path>
+    
+    <path id="test.classpath">
+        <path refid="classpath"/>
+        <pathelement location="${build.test.dir}"/>
+        <fileset dir="${lib.dir}" includes="junit-${junit.version}.jar"/>
+        <fileset dir="${lib.dir}" includes="hamcrest-core-${hamcrest.version}.jar"/>
+    </path>
+    
+    <!-- Clean target -->
+    <target name="clean" description="Clean build directories">
+        <delete dir="${build.dir}"/>
+        <echo message="Build directories cleaned"/>
+    </target>
+    
+    <!-- Compile main classes -->
+    <target name="compile" description="Compile main source files">
+        <mkdir dir="${build.classes.dir}"/>
+        <javac srcdir="${src.dir}" 
+               destdir="${build.classes.dir}" 
+               includeantruntime="false"
+               debug="true">
+            <include name="*.java"/>
+            <exclude name="test/**"/>
+        </javac>
+        <echo message="Main classes compiled"/>
+    </target>
+    
+    <!-- Compile test classes -->
+    <target name="compile-tests" depends="compile" description="Compile test source files">
+        <mkdir dir="${build.test.dir}"/>
+        <javac srcdir="${test.dir}" 
+               destdir="${build.test.dir}" 
+               includeantruntime="false"
+               debug="true">
+            <classpath refid="test.classpath"/>
+        </javac>
+        <echo message="Test classes compiled"/>
+    </target>
+    
+    <!-- Run all tests -->
+    <target name="test" depends="compile-tests" description="Run all tests">
+        <echo message="Running all tests..."/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test.dir}" includes="**/*Test.java"/>
+            </batchtest>
+        </junit>
+        <echo message="All tests completed"/>
+    </target>
+    
+    <!-- Run specific test class -->
+    <target name="test-class" depends="compile-tests" description="Run a specific test class">
+        <input message="Enter test class name (e.g., MessageHandlerTest):" addproperty="test.class"/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <test name="test.${test.class}"/>
+        </junit>
+    </target>
+    
+    <!-- Run test suite -->
+    <target name="test-suite" depends="compile-tests" description="Run the complete test suite">
+        <echo message="Running complete test suite..."/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <test name="test.TestSuite"/>
+        </junit>
+        <echo message="Test suite completed"/>
+    </target>
+    
+    <!-- Run individual test categories -->
+    <target name="test-unit" depends="compile-tests" description="Run unit tests only">
+        <echo message="Running unit tests..."/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test.dir}" includes="**/MessageHandlerTest.java"/>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="test-integration" depends="compile-tests" description="Run integration tests only">
+        <echo message="Running integration tests..."/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test.dir}" includes="**/IntegrationTest.java"/>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <target name="test-performance" depends="compile-tests" description="Run performance tests only">
+        <echo message="Running performance tests..."/>
+        <junit printsummary="yes" haltonfailure="no" fork="true" timeout="60000">
+            <classpath refid="test.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test.dir}" includes="**/PerformanceTest.java"/>
+            </batchtest>
+        </junit>
+    </target>
+    
+    <!-- Generate test report -->
+    <target name="test-report" depends="compile-tests" description="Generate detailed test report">
+        <mkdir dir="${build.dir}/reports"/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="xml"/>
+            <batchtest todir="${build.dir}/reports">
+                <fileset dir="${test.dir}" includes="**/*Test.java"/>
+            </batchtest>
+        </junit>
+        <junitreport todir="${build.dir}/reports">
+            <fileset dir="${build.dir}/reports" includes="TEST-*.xml"/>
+            <report todir="${build.dir}/reports"/>
+        </junitreport>
+        <echo message="Test report generated in ${build.dir}/reports"/>
+    </target>
+    
+    <!-- Run application -->
+    <target name="run-server" depends="compile" description="Run the chat server">
+        <echo message="Starting chat server..."/>
+        <java classname="ChatApplication.Server" fork="true">
+            <classpath refid="classpath"/>
+        </java>
+    </target>
+    
+    <target name="run-client" depends="compile" description="Run the chat client">
+        <echo message="Starting chat client..."/>
+        <java classname="ChatApplication.Client" fork="true">
+            <classpath refid="classpath"/>
+        </java>
+    </target>
+    
+    <!-- Download dependencies -->
+    <target name="download-deps" description="Download JUnit dependencies">
+        <mkdir dir="${lib.dir}"/>
+        <get src="https://repo1.maven.org/maven2/junit/junit/${junit.version}/junit-${junit.version}.jar" 
+             dest="${lib.dir}/junit-${junit.version}.jar" 
+             verbose="true"/>
+        <get src="https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/${hamcrest.version}/hamcrest-core-${hamcrest.version}.jar" 
+             dest="${lib.dir}/hamcrest-core-${hamcrest.version}.jar" 
+             verbose="true"/>
+        <echo message="Dependencies downloaded to ${lib.dir}"/>
+    </target>
+    
+    <!-- Package application -->
+    <target name="package" depends="compile" description="Create JAR file">
+        <jar destfile="${build.dir}/ChatApplication.jar" basedir="${build.classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="ChatApplication.Server"/>
+            </manifest>
+        </jar>
+        <echo message="Application packaged as ${build.dir}/ChatApplication.jar"/>
+    </target>
+    
+    <!-- Help target -->
+    <target name="help" description="Show available targets">
+        <echo message="Available targets:"/>
+        <echo message="  clean         - Clean build directories"/>
+        <echo message="  compile       - Compile main source files"/>
+        <echo message="  compile-tests - Compile test source files"/>
+        <echo message="  test          - Run all tests"/>
+        <echo message="  test-suite    - Run complete test suite"/>
+        <echo message="  test-unit     - Run unit tests only"/>
+        <echo message="  test-integration - Run integration tests only"/>
+        <echo message="  test-performance - Run performance tests only"/>
+        <echo message="  test-report   - Generate detailed test report"/>
+        <echo message="  run-server    - Run the chat server"/>
+        <echo message="  run-client    - Run the chat client"/>
+        <echo message="  download-deps - Download JUnit dependencies"/>
+        <echo message="  package       - Create JAR file"/>
+        <echo message="  help          - Show this help message"/>
+    </target>
+    
+</project> 
